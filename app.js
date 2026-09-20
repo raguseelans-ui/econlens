@@ -205,6 +205,96 @@
     });
     return out + "</svg>";
   }
+  // line or step chart drawn only from figures the article states.
+  // series: [{name, points: [[label, value], ...]}]; labels are ISO dates or the article's own wording.
+  var ISO = /^\d{4}-\d{2}-\d{2}$/;
+  function monthYear(iso) { return new Date(iso + "T00:00:00").toLocaleDateString("en-GB", { month: "short", year: "numeric" }); }
+  function trendSeries(t) {
+    var list = Array.isArray(t.series) && t.series.length ? t.series : [{ name: "", points: t.points }];
+    return list.slice(0, 3).map(function (s) {
+      return { name: s.name || "", points: (s.points || []).filter(function (p) { return Array.isArray(p) && typeof p[1] === "number"; }) };
+    }).filter(function (s) { return s.points.length >= 2; });
+  }
+  var LINE_COLOURS = ["var(--accent)", "var(--hi)", "#56656e"];
+  function trendSvg(t, series) {
+    var W = 720, H = 310, L = 56, R = 34, T = 30, B = 52, pw = W - L - R, ph = H - T - B, unit = t.unit || "";
+    var labels = [], vals = [];
+    series.forEach(function (s) { s.points.forEach(function (p) { vals.push(p[1]); if (labels.indexOf(p[0]) === -1) labels.push(p[0]); }); });
+    var isDate = labels.every(function (l) { return ISO.test(l); });
+    var ref = t.reference && typeof t.reference.value === "number" ? t.reference.value : null;
+    if (ref !== null) vals.push(ref);
+    var sc = niceScale(Math.min.apply(null, vals), Math.max.apply(null, vals));
+    var xs = {}, d0, d1;
+    if (isDate) {
+      var times = labels.map(function (l) { return new Date(l + "T00:00:00").getTime(); });
+      d0 = Math.min.apply(null, times); d1 = Math.max.apply(null, times);
+      labels.forEach(function (l, i) { xs[l] = L + (times[i] - d0) / ((d1 - d0) || 1) * pw; });
+    } else {
+      labels.forEach(function (l, i) { xs[l] = L + pw * (i + 0.5) / labels.length; });
+    }
+    function y(v) { return T + (sc.hi - v) / (sc.hi - sc.lo) * ph; }
+    var summary = series.map(function (s) {
+      var f = s.points[0], l = s.points[s.points.length - 1];
+      return (s.name ? s.name + ": " : "") + "from " + fmtNum(f[1], unit) + " (" + f[0] + ") to " + fmtNum(l[1], unit) + " (" + l[0] + ")";
+    }).join("; ");
+    var out = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + esc((t.title || "Chart") + ". " + summary + ".") + '">';
+    for (var tk = sc.lo; tk <= sc.hi + sc.step / 2; tk += sc.step) {
+      var gv = Math.round(tk / sc.step) * sc.step;
+      out += '<line class="' + (gv === 0 ? "zl" : "gl") + '" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(gv) + '" y2="' + y(gv) + '"/>' +
+        '<text class="axis" x="' + (L - 8) + '" y="' + (y(gv) + 4) + '" text-anchor="end">' + esc(fmtNum(gv, unit)) + "</text>";
+    }
+    // x axis labels
+    if (isDate) {
+      var yr0 = new Date(d0).getFullYear(), yr1 = new Date(d1).getFullYear();
+      if (yr1 - yr0 >= 3) {
+        var every = yr1 - yr0 > 8 ? 2 : 1;
+        for (var yr = yr0; yr <= yr1; yr += every) {
+          var xx = L + (new Date(yr, 0, 1).getTime() - d0) / ((d1 - d0) || 1) * pw;
+          if (xx >= L - 1 && xx <= W - R + 1) out += '<text class="axis" x="' + Math.max(L, xx) + '" y="' + (H - 18) + '" text-anchor="middle">' + yr + "</text>";
+        }
+      } else {
+        var step = Math.ceil(labels.length / 7);
+        labels.forEach(function (l, i) { if (i % step === 0) out += '<text class="axis" x="' + xs[l] + '" y="' + (H - 18) + '" text-anchor="middle">' + esc(monthYear(l)) + "</text>"; });
+      }
+    } else {
+      var skip = Math.ceil(labels.length / Math.max(2, Math.floor(pw / 70))), maxChars = Math.max(6, Math.floor(pw / labels.length / 7));
+      labels.forEach(function (l, i) {
+        if (i % skip !== 0) return;
+        out += '<text class="axis" x="' + xs[l] + '" y="' + (T + ph + 20) + '" text-anchor="middle">' +
+          wrapLabel(l, maxChars * skip).slice(0, 2).map(function (ln, k) { return '<tspan x="' + xs[l] + '" dy="' + (k ? 14 : 0) + '">' + esc(ln) + "</tspan>"; }).join("") + "</text>";
+      });
+    }
+    if (ref !== null) {
+      out += '<line class="gl" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(ref) + '" y2="' + y(ref) + '" style="stroke:var(--muted);stroke-dasharray:2 4"/>' +
+        '<text class="axis" x="' + (W - R - 2) + '" y="' + (y(ref) + 16) + '" text-anchor="end">' + esc(t.reference.label || "") + "</text>";
+    }
+    var few = series.every(function (s) { return s.points.length <= 12; });
+    series.forEach(function (s, si) {
+      var col = LINE_COLOURS[si], d = "";
+      s.points.forEach(function (p, i) {
+        var px = xs[p[0]].toFixed(1), py = y(p[1]).toFixed(1);
+        d += i === 0 ? "M" + px + "," + py : (t.type === "step" ? " H" + px + " V" + py : " L" + px + "," + py);
+      });
+      out += '<path d="' + d + '" fill="none" style="stroke:' + col + ';stroke-width:3;stroke-linejoin:round"/>';
+      s.points.forEach(function (p, i) {
+        var end = i === 0 || i === s.points.length - 1;
+        if (!few && !end) return;
+        out += '<circle cx="' + xs[p[0]] + '" cy="' + y(p[1]) + '" r="' + (end ? 4.5 : 3.5) + '" style="fill:' + col + '"/>';
+        var showLabel = series.length === 1 ? (few || end) : i === s.points.length - 1;
+        if (showLabel) {
+          var above = si === 0 || series.length === 1;
+          out += '<text class="callout" x="' + xs[p[0]] + '" y="' + (y(p[1]) + (above ? -11 : 20)) + '" text-anchor="' + (i === s.points.length - 1 ? "end" : i === 0 ? "start" : "middle") + '">' + esc(fmtNum(p[1], unit)) + "</text>";
+        }
+      });
+    });
+    return out + "</svg>";
+  }
+  function trendLegend(series) {
+    if (series.length < 2) return "";
+    return '<div class="legend">' + series.map(function (s, i) {
+      return '<span style="--c:' + LINE_COLOURS[i] + '">' + esc(s.name) + "</span>";
+    }).join("") + "</div>";
+  }
   function pct(v, total) { var p = v / total * 100; return (p % 1 === 0 ? p : p.toFixed(1)) + "%"; }
   function shareHtml(s) {
     var parts = (s.parts || []).filter(function (p) { return typeof p.value === "number"; });
@@ -241,7 +331,13 @@
   function dataSection(g) {
     var v = g.visuals;
     if (!v) return "";
-    var html = "", c = v.chart;
+    var html = "", c = v.chart, tr = v.trend;
+    var trS = tr ? trendSeries(tr) : [];
+    if (trS.length) {
+      html += '<div class="panel" style="margin-bottom:1rem">' + (nonEmpty(tr.title) ? "<h3>" + esc(tr.title) + "</h3>" : "") + trendLegend(trS) +
+        '<div class="chart-wrap">' + trendSvg(tr, trS) + "</div>" + (nonEmpty(tr.caption) ? '<p class="chart-caption">' + esc(tr.caption) + (Array.isArray(tr.sources) && tr.sources.length
+          ? " Data: " + tr.sources.filter(function (x) { return safeUrl(x.url); }).map(function (x) { return '<a href="' + esc(x.url) + '" target="_blank" rel="noopener noreferrer">' + esc(x.name) + "</a>"; }).join(", ") + "." : "") + "</p>" : "") + "</div>";
+    }
     if (c && Array.isArray(c.values) && c.values.length && c.values.length === (c.labels || []).length) {
       html += '<div class="panel">' + (nonEmpty(c.title) ? "<h3>" + esc(c.title) + "</h3>" : "") + '<div class="chart-wrap">' + chartSvg(c) + "</div>" +
         (nonEmpty(c.caption) ? '<p class="chart-caption">' + esc(c.caption) + "</p>" : "") + "</div>";

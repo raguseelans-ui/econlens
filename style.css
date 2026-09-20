@@ -115,6 +115,7 @@ header.hero{padding-bottom:.5rem}
 .legend{display:flex;flex-wrap:wrap;gap:.3rem 1.2rem;font-family:var(--sans);font-size:.88rem;margin:.2rem 0 .4rem}
 .legend span::before{content:"";display:inline-block;width:.8rem;height:.8rem;border-radius:2px;background:var(--accent);margin-right:.4rem;vertical-align:-1px}
 .legend span.hi::before{background:var(--hi)}
+.legend span[style*="--c"]::before{background:var(--c)}
 .note{font-family:var(--sans);font-size:.88rem;color:var(--muted);max-width:none}
 .mrow{display:grid;grid-template-columns:minmax(120px,240px) 1fr 52px;gap:.6rem;align-items:center;font-family:var(--sans);font-size:.92rem;margin:.45rem 0}
 .mrow i{display:block;height:14px;border-radius:3px;background:var(--accent);width:var(--w)}
