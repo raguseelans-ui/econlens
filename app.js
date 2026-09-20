@@ -278,8 +278,7 @@
         var px = xs[p[0]].toFixed(1), py = y(p[1]).toFixed(1);
         d += i === 0 ? "M" + px + "," + py : (t.type === "step" ? " H" + px + " V" + py : " L" + px + "," + py);
       });
-      out += '<path class="trace" pathLength="1" d="' + d + '" fill="none" style="stroke:' + col + ';stroke-width:9;stroke-linejoin:round;stroke-linecap:round;opacity:.16"/>' +
-        '<path class="trace" pathLength="1" d="' + d + '" fill="none" style="stroke:' + col + ';stroke-width:2.6;stroke-linejoin:round;stroke-linecap:round"/>';
+      out += '<path class="trace" pathLength="1" d="' + d + '" fill="none" style="stroke:' + col + ';stroke-width:2.6;stroke-linejoin:round;stroke-linecap:round"/>';
       s.points.forEach(function (p, i) {
         var end = i === 0 || i === s.points.length - 1;
         if (!few && !end) return;
