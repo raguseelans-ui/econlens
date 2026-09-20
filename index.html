@@ -8,20 +8,20 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="topbar no-print">
-  <div class="wrap">
-    <a class="brand" href="#/">EconLens<span>Edexcel A Level Economics in the news</span></a>
+<div class="dash no-print">
+  <div class="dash-top">
+    <a class="brand" href="#/">EconLens<span class="tag-line">Edexcel A Level Economics in the news</span></a>
     <div id="account"></div>
   </div>
 </div>
 <div id="teacherbar" class="teacherbar" hidden></div>
-<main class="wrap" id="app" aria-live="polite"></main>
-<footer class="site no-print"><div class="wrap">AI-generated study resources based on published news. Not official Edexcel material. Article text is not stored here; follow the links to read the originals.</div></footer>
+<div id="app" aria-live="polite"></div>
+<footer class="site no-print">AI-generated study resources based on published news. Not official Edexcel material. Article text is not stored here; follow the links to read the originals.</footer>
 
 <dialog id="login">
   <form method="dialog" id="loginform">
     <h2 style="font-size:1.15rem;margin:0">Teacher login</h2>
-    <label for="pw" style="font-size:.9rem;color:#5b6770">Department password</label>
+    <label for="pw" style="font-size:.9rem;color:#56656e">Department password</label>
     <input id="pw" type="password" autocomplete="current-password" required>
     <p class="err" id="loginerr" hidden></p>
     <div class="row"><button class="btn" type="button" id="logincancel">Cancel</button><button class="btn primary" type="submit">Log in</button></div>
