@@ -5,13 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>EconLens: Economics in the news</title>
 <meta name="robots" content="noindex">
+<script>try{document.documentElement.setAttribute("data-mode",localStorage.getItem("econlens-mode")==="light"?"light":"dark")}catch(e){document.documentElement.setAttribute("data-mode","dark")}</script>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="dash no-print">
   <div class="dash-top">
     <a class="brand" href="#/">EconLens<span class="tag-line">Edexcel A Level Economics in the news</span></a>
-    <div id="account"></div>
+    <div id="account" class="acct"></div>
   </div>
 </div>
 <div id="teacherbar" class="teacherbar" hidden></div>
@@ -21,7 +22,7 @@
 <dialog id="login">
   <form method="dialog" id="loginform">
     <h2 style="font-size:1.15rem;margin:0">Teacher login</h2>
-    <label for="pw" style="font-size:.9rem;color:#56656e">Department password</label>
+    <label for="pw" style="font-size:.9rem;color:var(--muted)">Department password</label>
     <input id="pw" type="password" autocomplete="current-password" required>
     <p class="err" id="loginerr" hidden></p>
     <div class="row"><button class="btn" type="button" id="logincancel">Cancel</button><button class="btn primary" type="submit">Log in</button></div>

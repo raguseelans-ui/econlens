@@ -179,6 +179,7 @@
     if (cur) lines.push(cur);
     return lines;
   }
+  var chartCount = 0;
   function chartSvg(c) {
     var vals = c.values, n = vals.length, unit = c.unit || "";
     var W = 720, L = 68, R = 16, T = 30, pw = W - L - R;
@@ -186,8 +187,10 @@
     var B = 34 + maxLines * 15, H = 240 + B - 34, ph = H - T - B;
     var sc = niceScale(Math.min.apply(null, vals), Math.max.apply(null, vals));
     function y(v) { return T + (sc.hi - v) / (sc.hi - sc.lo) * ph; }
+    var gid = "g" + (++chartCount);
     var out = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' +
       esc((c.title || "Bar chart") + ": " + c.labels.map(function (l, i) { return l + " " + fmtNum(vals[i], unit); }).join("; ")) + '">';
+    out += '<defs><linearGradient id="' + gid + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--accent)"/><stop offset="1" style="stop-color:var(--accent);stop-opacity:.45"/></linearGradient></defs>';
     for (var t = sc.lo; t <= sc.hi + sc.step / 2; t += sc.step) {
       var v = Math.round(t / sc.step) * sc.step;
       out += '<line class="' + (v === 0 ? "zl" : "gl") + '" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v) + '" y2="' + y(v) + '"/>' +
@@ -196,8 +199,8 @@
     var slot = pw / n, bw = Math.min(96, slot * 0.58), maxChars = Math.max(9, Math.floor(slot / 7));
     vals.forEach(function (val, i) {
       var x = L + slot * i + (slot - bw) / 2, y0 = y(0), y1 = y(val), top = Math.min(y0, y1), h = Math.max(1, Math.abs(y0 - y1));
-      var fill = val < 0 ? "var(--bad)" : "var(--accent)";
-      out += '<rect x="' + x + '" y="' + top + '" width="' + bw + '" height="' + h + '" rx="2" style="fill:' + fill + '"/>' +
+      var fill = val < 0 ? "var(--bad)" : "url(#" + gid + ")";
+      out += '<rect class="bar' + (val < 0 ? " neg" : "") + '" x="' + x + '" y="' + top + '" width="' + bw + '" height="' + h + '" rx="3" style="fill:' + fill + ";animation-delay:" + (i * 90) + 'ms"/>' +
         '<text class="callout" x="' + (x + bw / 2) + '" y="' + (val < 0 ? top + h + 16 : top - 7) + '" text-anchor="middle">' + esc(fmtNum(val, unit)) + "</text>";
       var lines = wrapLabel(c.labels[i], maxChars), cx = x + bw / 2;
       out += '<text class="axis" x="' + cx + '" y="' + (T + ph + 24) + '" text-anchor="middle">' +
@@ -275,7 +278,8 @@
         var px = xs[p[0]].toFixed(1), py = y(p[1]).toFixed(1);
         d += i === 0 ? "M" + px + "," + py : (t.type === "step" ? " H" + px + " V" + py : " L" + px + "," + py);
       });
-      out += '<path d="' + d + '" fill="none" style="stroke:' + col + ';stroke-width:3;stroke-linejoin:round"/>';
+      out += '<path class="trace" pathLength="1" d="' + d + '" fill="none" style="stroke:' + col + ';stroke-width:9;stroke-linejoin:round;stroke-linecap:round;opacity:.16"/>' +
+        '<path class="trace" pathLength="1" d="' + d + '" fill="none" style="stroke:' + col + ';stroke-width:2.6;stroke-linejoin:round;stroke-linecap:round"/>';
       s.points.forEach(function (p, i) {
         var end = i === 0 || i === s.points.length - 1;
         if (!few && !end) return;
@@ -492,7 +496,7 @@
 
     app.innerHTML = '<div class="layout"><nav class="toc no-print" aria-label="Contents"><a class="back" href="#/">&larr; All articles</a><p>On this page</p>' +
       sections.map(function (s) { return '<a href="#/a/' + encodeURIComponent(a.id) + '" data-scroll="' + s[0] + '">' + s[1] + "</a>"; }).join("") + "</nav>" +
-      '<main><header class="hero"><div class="chips">' + chips + "</div><h1>" + esc(a.headline) + "</h1>" +
+      '<main><header class="hero">' + (t ? '<p class="eyebrow">Theme ' + t + " &middot; " + esc(m.primary_code) + "</p>" : "") + '<div class="chips">' + chips + "</div><h1>" + esc(a.headline) + "</h1>" +
       '<p class="meta">Source: ' + esc(a.source) + ", " + esc(fmtDate(a.date)) + ".</p>" + intro + banner +
       '<div class="toolbar no-print">' + (link ? '<a class="btn primary" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">Read the full article &#8599;</a>' : "") +
       '<button type="button" class="btn" id="printbtn">Print or save as PDF</button></div>' +
@@ -502,7 +506,21 @@
     document.title = a.headline + " | EconLens";
   }
 
+  var spy = null;
+  function watchSections() {
+    if (spy) spy.disconnect();
+    var links = [].slice.call(app.querySelectorAll("nav.toc a[data-scroll]"));
+    if (!links.length || !window.IntersectionObserver) return;
+    spy = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (l) { l.classList.toggle("active", l.getAttribute("data-scroll") === en.target.id); });
+      });
+    }, { rootMargin: "-25% 0px -65% 0px" });
+    links.forEach(function (l) { var el = document.getElementById(l.getAttribute("data-scroll")); if (el) spy.observe(el); });
+  }
   function wireArticle() {
+    watchSections();
     [].forEach.call(app.querySelectorAll("nav.toc a[data-scroll]"), function (l) {
       l.onclick = function (e) { e.preventDefault(); var el = document.getElementById(l.getAttribute("data-scroll")); if (el) el.scrollIntoView(); };
     });
@@ -593,9 +611,10 @@
   }
   function renderAccount() {
     var el = document.getElementById("account");
-    el.innerHTML = isTeacher()
+    el.innerHTML = '<button class="linkbtn" id="modebtn" type="button" aria-label="Switch between light and dark mode">Switch light / dark</button>' + (isTeacher()
       ? '<button class="linkbtn" id="logout">Log out of teacher view</button>'
-      : '<button class="linkbtn" id="login-open">Teacher login</button>';
+      : '<button class="linkbtn" id="login-open">Teacher login</button>');
+    document.getElementById("modebtn").onclick = function () { setMode(root.getAttribute("data-mode") === "dark" ? "light" : "dark"); };
     var lo = document.getElementById("logout"), li = document.getElementById("login-open");
     if (lo) lo.onclick = function () { state.teacher = null; state.f.status = ""; render(); };
     if (li) li.onclick = function () { loginDialog.showModal(); document.getElementById("pw").focus(); };
@@ -647,6 +666,15 @@
     var sel = document.getElementById("mapsel");
     if (sel) sel.onchange = function () { if (sel.value) setReview(a.id, { primary_code: sel.value, primary_title: specTitle(sel.value) }); };
   }
+
+  // ---------- light and dark ----------
+  var root = document.documentElement, printMode = null;
+  function setMode(m) {
+    root.setAttribute("data-mode", m);
+    try { localStorage.setItem("econlens-mode", m); } catch (e) { /* not saved: still switches for this visit */ }
+  }
+  window.addEventListener("beforeprint", function () { printMode = root.getAttribute("data-mode"); root.setAttribute("data-mode", "light"); });
+  window.addEventListener("afterprint", function () { if (printMode) root.setAttribute("data-mode", printMode); printMode = null; });
 
   // ---------- routing ----------
   function render() {
