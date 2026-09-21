@@ -1,5 +1,5 @@
 /* EconLens. Tokens follow the reference dashboard. html[data-mode] is "dark" (default) or "light".
-   Each theme keeps its own accent colour in both modes; [data-theme] sets it. */
+   Each colour key from the curriculum (blue, green, orange, purple) has its own accent in both modes; [data-colour] sets it. */
 :root{
   color-scheme:light;
   --bg:#f4f6f7; --surface:#ffffff; --ink:#15232b; --muted:#56656e; --line:#d6dde1;
@@ -12,10 +12,10 @@
   --sans:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
 }
-[data-theme="1"]{--bg:#edf3fb;--accent:#1d5fa8;--accent-soft:#dbe8f7;--accent-rgb:29,95,168;--line:#c9d9ec;--hi:#b45309;--hi-soft:#fbead8}
-[data-theme="2"]{--bg:#ecf6f0;--accent:#1f7a45;--accent-soft:#d8eee1;--accent-rgb:31,122,69;--line:#c8dfd0;--hi:#a4560a;--hi-soft:#f8e9d6}
-[data-theme="3"]{--bg:#fdf3e7;--accent:#b45309;--accent-soft:#f9e2c9;--accent-rgb:180,83,9;--line:#ebd4b9;--hi:#1d4f7c;--hi-soft:#dce9f5}
-[data-theme="4"]{--bg:#f3edf9;--accent:#6b3fa0;--accent-soft:#e5daf3;--accent-rgb:107,63,160;--line:#d9cbea;--hi:#a4560a;--hi-soft:#f8e9d6}
+[data-colour="blue"]{--bg:#edf3fb;--accent:#1d5fa8;--accent-soft:#dbe8f7;--accent-rgb:29,95,168;--line:#c9d9ec;--hi:#b45309;--hi-soft:#fbead8}
+[data-colour="green"]{--bg:#ecf6f0;--accent:#1f7a45;--accent-soft:#d8eee1;--accent-rgb:31,122,69;--line:#c8dfd0;--hi:#a4560a;--hi-soft:#f8e9d6}
+[data-colour="orange"]{--bg:#fdf3e7;--accent:#b45309;--accent-soft:#f9e2c9;--accent-rgb:180,83,9;--line:#ebd4b9;--hi:#1d4f7c;--hi-soft:#dce9f5}
+[data-colour="purple"]{--bg:#f3edf9;--accent:#6b3fa0;--accent-soft:#e5daf3;--accent-rgb:107,63,160;--line:#d9cbea;--hi:#a4560a;--hi-soft:#f8e9d6}
 
 /* dark mode: neutral values from the reference dashboard, plus a tinted dark palette per theme */
 html[data-mode="dark"]{
@@ -27,10 +27,10 @@ html[data-mode="dark"]{
   --warn-ink:#f0c674; --warn-bg:#3a2b17; --warn-line:#5c4520;
   --glow-a:.2; --shadow-a:.5;
 }
-html[data-mode="dark"] [data-theme="1"]{--bg:#0b1624;--surface:#122237;--line:#25405f;--accent:#6fb2f5;--accent-soft:#163556;--accent-rgb:111,178,245;--hi:#f0b36b;--hi-soft:#3a2b17}
-html[data-mode="dark"] [data-theme="2"]{--bg:#0b1c15;--surface:#112a1f;--line:#23473a;--accent:#5fd18b;--accent-soft:#134030;--accent-rgb:95,209,139;--hi:#f0b36b;--hi-soft:#3a2b17}
-html[data-mode="dark"] [data-theme="3"]{--bg:#1c1408;--surface:#2a1e10;--line:#4d3820;--accent:#f6a35b;--accent-soft:#4a2d0f;--accent-rgb:246,163,91;--hi:#7db6ea;--hi-soft:#163556}
-html[data-mode="dark"] [data-theme="4"]{--bg:#140e25;--surface:#1f1737;--line:#3a2d61;--accent:#b993f5;--accent-soft:#2f2352;--accent-rgb:185,147,245;--hi:#f0b36b;--hi-soft:#3a2b17}
+html[data-mode="dark"] [data-colour="blue"]{--bg:#0b1624;--surface:#122237;--line:#25405f;--accent:#6fb2f5;--accent-soft:#163556;--accent-rgb:111,178,245;--hi:#f0b36b;--hi-soft:#3a2b17}
+html[data-mode="dark"] [data-colour="green"]{--bg:#0b1c15;--surface:#112a1f;--line:#23473a;--accent:#5fd18b;--accent-soft:#134030;--accent-rgb:95,209,139;--hi:#f0b36b;--hi-soft:#3a2b17}
+html[data-mode="dark"] [data-colour="orange"]{--bg:#1c1408;--surface:#2a1e10;--line:#4d3820;--accent:#f6a35b;--accent-soft:#4a2d0f;--accent-rgb:246,163,91;--hi:#7db6ea;--hi-soft:#163556}
+html[data-mode="dark"] [data-colour="purple"]{--bg:#140e25;--surface:#1f1737;--line:#3a2d61;--accent:#b993f5;--accent-soft:#2f2352;--accent-rgb:185,147,245;--hi:#f0b36b;--hi-soft:#3a2b17}
 
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -261,3 +261,10 @@ dialog .row{display:flex;gap:.5rem;justify-content:flex-end}
   .print-link{display:block}
   header.hero::before,section>h2::after{display:none}
 }
+
+/* ---------- marking levels and answer guide (new template) ---------- */
+.answer h5{font:600 .74rem var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:1rem 0 .4rem}
+.ao ul.tight{margin:0}
+.ao ul.tight li{margin-bottom:.3rem}
+.level ul{margin:.3rem 0 0;padding-left:1.1rem}
+.level ul li{margin-bottom:.2rem}
