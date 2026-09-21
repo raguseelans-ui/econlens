@@ -9,8 +9,13 @@ export function heroHtml(art, ctx) {
 
   let chips = "";
   if (m) {
-    chips += `<span class="chip primary">${esc(m.primary + " " + cur.specTitle(m.primary))}</span>`;
-    (m.secondary || []).forEach((c) => { chips += `<span class="chip">${esc(c + " " + cur.specTitle(c))}</span>`; });
+    [m.primary, ...(m.secondary || [])].forEach((c, i) => {
+      const label = esc(c + " " + cur.specTitle(c)), cls = "chip" + (i === 0 ? " primary" : "");
+      // A code with tagged points becomes a button that shows them; one without stays plain.
+      chips += cur.pointsOf(c, m.points || []).length
+        ? `<button type="button" class="${cls} has-pts" data-code="${esc(c)}" aria-expanded="false" title="${esc(cur.config.site.points_hint)}">${label}</button>`
+        : `<span class="${cls}">${label}</span>`;
+    });
     if (has(m.confidence_band)) {
       const n = typeof m.confidence === "number" ? ` (${Math.round(m.confidence * 100)}%)` : ""; // numeric score exists only in teacher files
       chips += `<span class="chip">Mapping confidence: ${esc(m.confidence_band)}${n}</span>`;
@@ -31,10 +36,27 @@ export function heroHtml(art, ctx) {
 
   return '<header class="hero">' +
     (theme ? `<p class="eyebrow">${esc(theme.label)} &middot; ${esc(m.primary)}</p>` : "") +
-    `<div class="chips">${chips}</div><h1>${esc(meta.headline)}</h1>` +
+    `<div class="chips">${chips}</div><ul class="ptlist" hidden></ul><h1>${esc(meta.headline)}</h1>` +
     `<p class="meta">Source: ${esc(meta.source)}, ${esc(fmtDate(meta.published))}.</p>${intro}${banner}` +
     '<div class="toolbar no-print">' +
     (link ? `<a class="btn primary" href="${esc(link)}" target="_blank" rel="noopener noreferrer">Read the full article &#8599;</a>` : "") +
     '<button type="button" class="btn" id="printbtn">Print or save as PDF</button></div>' +
     (link ? `<p class="print-link note" style="margin-top:.6rem">Full article: ${esc(link)}</p>` : "") + "</header>";
+}
+
+// Chips with points: press one to list that code's points under the chips; press it again to close.
+export function mountHero(app, art, ctx) {
+  const box = app.querySelector(".ptlist");
+  const chips = [...app.querySelectorAll(".chip.has-pts")];
+  if (!box) return;
+  chips.forEach((chip) => {
+    chip.onclick = () => {
+      const open = chip.getAttribute("aria-expanded") === "true";
+      chips.forEach((c) => c.setAttribute("aria-expanded", "false"));
+      if (open) { box.hidden = true; return; }
+      chip.setAttribute("aria-expanded", "true");
+      box.innerHTML = ctx.cur.pointsOf(chip.dataset.code, art.mapping.points).map((p) => `<li><b>${esc(p.id)}</b> ${esc(p.display)}</li>`).join("");
+      box.hidden = false;
+    };
+  });
 }

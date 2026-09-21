@@ -7,7 +7,7 @@ const list = (items) => `<ul class="tight">${items.map((p) => `<li>${esc(p)}</li
 
 function mcqHtml(q, i, total, cur) {
   return `<div class="q mcq" data-i="${i}" data-answer="${esc(q.answer_key)}" data-expl="${esc(q.explanation)}"${i ? " hidden" : ""}>` +
-    `<div class="qlabel">Question ${i + 1} of ${total} &middot; ${esc(cur.mcqType(q.type))}</div><div class="qtxt">${esc(q.prompt)}</div><div class="opts">` +
+    `<div class="qlabel">Question ${i + 1} of ${total} &middot; ${esc(cur.mcqType(q.type))}${pointTag(q, cur)}</div><div class="qtxt">${esc(q.prompt)}</div><div class="opts">` +
     q.options.map((o) => `<button type="button" class="opt" data-k="${esc(o.key)}"><span class="l">${esc(o.key)}</span>${esc(o.text)}</button>`).join("") +
     '</div><div class="explain" hidden></div><div class="mcqnav no-print"></div></div>';
 }
@@ -32,11 +32,15 @@ function levelsHtml(kind) {
 function writtenHtml(q, cur) {
   const kind = cur.kind(q.kind);
   const big = (kind.total_marks || 0) >= 10;
-  return `<h3 style="margin-top:2rem">${esc(kind.label)} &middot; ${plural(kind.total_marks, "mark")}</h3>` +
+  return `<h3 style="margin-top:2rem">${esc(kind.label)} &middot; ${plural(kind.total_marks, "mark")}${pointTag(q, cur)}</h3>` +
     `<div class="q"><div class="qtxt">${esc(q.prompt)}</div>` +
     `<textarea class="attempt" data-for="${esc(q.id)}"${big ? ' style="min-height:13rem"' : ""} aria-label="Your answer"></textarea>${lines(big ? 16 : 8)}` +
     `<p class="hint no-print" data-hint="${esc(q.id)}"></p><button type="button" class="btn reveal" data-target="ans-${esc(q.id)}" data-attempt="${esc(q.id)}">Show answer guide</button>` +
     `<div class="answer" id="ans-${esc(q.id)}" hidden>${guideHtml(q, cur)}${levelsHtml(kind)}</div></div>`;
+}
+
+function pointTag(q, cur) {
+  return q.point && cur.point(q.point) ? ` &middot; ${esc(cur.config.site.point_label)} ${esc(q.point)}` : "";
 }
 
 export default {

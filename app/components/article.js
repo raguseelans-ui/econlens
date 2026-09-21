@@ -1,6 +1,6 @@
 // Builds an article page from the block list. It contains no article content of its own.
 import { BLOCKS } from "../blocks/index.js";
-import { heroHtml } from "./hero.js";
+import { heroHtml, mountHero } from "./hero.js";
 import { articleHref } from "../router.js";
 import { esc } from "../util.js";
 
@@ -42,6 +42,7 @@ export async function renderArticle(ctx, id) {
     l.onclick = (e) => { e.preventDefault(); const el = document.getElementById(l.dataset.scroll); if (el) el.scrollIntoView(); };
   });
   document.getElementById("printbtn").onclick = () => window.print();
+  mountHero(app, art, ctx);
   watchSections(app);
   parts.forEach((p) => p.b.mount && p.b.mount(app, art, ctx));
   document.title = `${art.meta.headline} | ${ctx.cur.config.site.name}`;
