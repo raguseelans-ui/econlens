@@ -2,10 +2,8 @@
 import { esc, fmtDate } from "../util.js";
 import { articleHref } from "../router.js";
 
-const NOT_RELEVANT = "Not relevant"; // shown to teachers for articles that were rejected as off-topic
-
 function statusOf(e, cur) {
-  return e.relevant ? { cls: e.status, label: cur.status(e.status).label } : { cls: "notrel", label: NOT_RELEVANT };
+  return e.relevant ? { cls: e.status, label: cur.status(e.status).label } : { cls: "notrel", label: cur.label("not_relevant") };
 }
 
 function haystack(e, cur) {
@@ -18,7 +16,7 @@ function cardHtml(e, cur) {
   let tags = "";
   if (theme) tags += `<span class="badge">${esc(theme.label)}</span><span class="tag">${esc(e.primary + " " + cur.specTitle(e.primary))}</span>`;
   tags += `<span class="status ${esc(st.cls)}">${esc(st.label)}</span>`;
-  const body = e.summary ? `<p class="clamp">${esc(e.summary)}</p>` : (e.reason ? `<p class="reason"><b>Why not relevant:</b> ${esc(e.reason)}</p>` : "");
+  const body = e.summary ? `<p class="clamp">${esc(e.summary)}</p>` : (e.reason ? `<p class="reason"><b>${esc(cur.label("why_not_relevant"))}</b> ${esc(e.reason)}</p>` : "");
   return `<article class="pick"${theme ? ` data-colour="${esc(theme.colour_key)}"` : ""}><div class="tags">${tags}</div>` +
     `<h2><a href="${articleHref(e.id)}">${esc(e.headline)}</a></h2>` +
     `<p class="meta">${esc(e.source)} &middot; ${esc(fmtDate(e.published))}</p>${body}</article>`;

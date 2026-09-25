@@ -8,17 +8,17 @@ function lessonText(art, cur) {
   const m = art.mapping, out = [];
   out.push(`${art.meta.headline} (${art.meta.source}, ${fmtDate(art.meta.published)})`);
   if (safeUrl(art.meta.url)) out.push(art.meta.url);
-  if (m) out.push(`Specification: ${m.primary} ${cur.specTitle(m.primary)}`);
-  if (art.summary) out.push("\nSUMMARY\n" + art.summary.paragraphs.join("\n\n"));
+  if (m) out.push(`${cur.label("specification")} ${m.primary} ${cur.specTitle(m.primary)}`);
+  if (art.summary) out.push(`\n${cur.label("copy_summary")}\n` + art.summary.paragraphs.join("\n\n"));
   const terms = [...(art.key_terms || [])].sort((a, b) => a.term.localeCompare(b.term, "en-GB"));
-  if (terms.length) out.push("\nKEY TERMS\n" + terms.map((t) => `${t.term}: ${t.definition}`).join("\n"));
+  if (terms.length) out.push(`\n${cur.label("copy_terms")}\n` + terms.map((t) => `${t.term}: ${t.definition}`).join("\n"));
   const qs = (art.questions || []).map((q, i) => {
     if (q.kind === "mcq") return `${i + 1}. ${q.prompt}\n` + q.options.map((o) => `   ${o.key}. ${o.text}`).join("\n");
     const k = cur.kind(q.kind);
-    return `${k.label} (${plural(k.total_marks, "mark")}): ${q.prompt}`;
+    return `${k.label} (${plural(k.total_marks, cur.label("mark"))}): ${q.prompt}`;
   });
-  if (qs.length) out.push("\nQUESTIONS\n" + qs.join("\n\n"));
-  if (art.discussion) out.push("\nDISCUSSION\n" + art.discussion.prompt);
+  if (qs.length) out.push(`\n${cur.label("copy_questions")}\n` + qs.join("\n\n"));
+  if (art.discussion) out.push(`\n${cur.label("copy_discussion")}\n` + art.discussion.prompt);
   return out.join("\n");
 }
 
@@ -41,10 +41,9 @@ export function renderTeacherBar(ctx, art) {
   if (art) {
     html += cur.config.statuses.map((s) => `<button class="btn ${BUTTON_CLASS[s.key] || ""}" data-status="${esc(s.key)}">${esc(s.action)}</button>`).join("");
     if (art.mapping) {
+      const codes = cur.specCodes.filter((s) => cur.pointsOf(s.code, art.mapping.points || []).length);  // a main code needs a tagged point in it
       html += '<label>Edit mapping <select id="mapsel"><option value="">Choose a spec code</option>' +
-        cur.themes.map((t) => `<optgroup label="${esc(t.label + ": " + t.name)}">` +
-          cur.specCodes.filter((s) => s.theme === t.id).map((s) =>
-            `<option value="${esc(s.code)}"${s.code === art.mapping.primary ? " selected" : ""}>${esc(s.code + " " + s.title)}</option>`).join("") + "</optgroup>").join("") +
+        codes.map((s) => `<option value="${esc(s.code)}"${s.code === art.mapping.primary ? " selected" : ""}>${esc(s.code + " " + s.title)}</option>`).join("") +
         "</select></label>";
     }
     html += '<button class="btn" id="copybtn">Copy for lesson</button><button class="btn" id="tprint">Print</button>';

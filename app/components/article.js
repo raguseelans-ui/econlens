@@ -35,7 +35,7 @@ export async function renderArticle(ctx, id) {
 
   const parts = BLOCKS.map((b) => ({ b, html: b.render(art, ctx) })).filter((p) => p.html);
   app.innerHTML = '<div class="layout"><nav class="toc no-print" aria-label="Contents"><a class="back" href="#/">&larr; All articles</a><p>On this page</p>' +
-    parts.map((p) => `<a href="${articleHref(art.id)}" data-scroll="sec-${p.b.id}">${esc(p.b.nav)}</a>`).join("") + "</nav>" +
+    parts.map((p) => `<a href="${articleHref(art.id)}" data-scroll="sec-${p.b.id}">${esc(ctx.cur.label(p.b.navKey))}</a>`).join("") + "</nav>" +
     `<main>${heroHtml(art, ctx)}${parts.map((p) => p.html).join("")}</main></div>`;
 
   app.querySelectorAll("nav.toc a[data-scroll]").forEach((l) => {

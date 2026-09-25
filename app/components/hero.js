@@ -18,15 +18,15 @@ export function heroHtml(art, ctx) {
     });
     if (has(m.confidence_band)) {
       const n = typeof m.confidence === "number" ? ` (${Math.round(m.confidence * 100)}%)` : ""; // numeric score exists only in teacher files
-      chips += `<span class="chip">Mapping confidence: ${esc(m.confidence_band)}${n}</span>`;
+      chips += `<span class="chip">${esc(cur.label("mapping_confidence", { band: m.confidence_band }))}${esc(n)}</span>`;
     }
   }
   if (status) chips += `<span class="status ${esc(status)}" style="margin-left:0">${esc(cur.status(status).label)}</span>`;
 
   let intro = "";
   if (m && has(m.justification)) intro += `<p>${esc(m.justification)}</p>`;
-  if (m && has(m.cross_theme_note)) intro += `<p><b>Cross-theme links:</b> ${esc(m.cross_theme_note)}</p>`;
-  if (!art.relevance.relevant) intro += `<p><b>Marked as not relevant:</b> ${esc(art.relevance.reason)}</p>`;
+  if (m && has(m.cross_theme_note)) intro += `<p><b>${esc(cur.label("cross_theme"))}</b> ${esc(m.cross_theme_note)}</p>`;
+  if (!art.relevance.relevant) intro += `<p><b>${esc(cur.label("not_relevant_note"))}</b> ${esc(art.relevance.reason)}</p>`;
 
   const site = cur.config.site;
   let banner = status === "approved"
@@ -37,11 +37,11 @@ export function heroHtml(art, ctx) {
   return '<header class="hero">' +
     (theme ? `<p class="eyebrow">${esc(theme.label)} &middot; ${esc(m.primary)}</p>` : "") +
     `<div class="chips">${chips}</div><ul class="ptlist" hidden></ul><h1>${esc(meta.headline)}</h1>` +
-    `<p class="meta">Source: ${esc(meta.source)}, ${esc(fmtDate(meta.published))}.</p>${intro}${banner}` +
+    `<p class="meta">${esc(cur.label("source_line", { source: meta.source, date: fmtDate(meta.published) }))}</p>${intro}${banner}` +
     '<div class="toolbar no-print">' +
-    (link ? `<a class="btn primary" href="${esc(link)}" target="_blank" rel="noopener noreferrer">Read the full article &#8599;</a>` : "") +
-    '<button type="button" class="btn" id="printbtn">Print or save as PDF</button></div>' +
-    (link ? `<p class="print-link note" style="margin-top:.6rem">Full article: ${esc(link)}</p>` : "") + "</header>";
+    (link ? `<a class="btn primary" href="${esc(link)}" target="_blank" rel="noopener noreferrer">${esc(cur.label("read_full"))} &#8599;</a>` : "") +
+    '<button type="button" class="btn" id="printbtn">' + esc(cur.label("print_pdf")) + "</button></div>" +
+    (link ? `<p class="print-link note" style="margin-top:.6rem">${esc(cur.label("read_full"))}: ${esc(link)}</p>` : "") + "</header>";
 }
 
 // Chips with points: press one to list that code's points under the chips; press it again to close.

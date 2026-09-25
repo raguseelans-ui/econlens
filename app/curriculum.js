@@ -12,6 +12,8 @@ export function makeCurriculum(config) {
     spec: (code) => specs.get(code) || null,
     specTitle: (code) => (specs.get(code) || {}).title || "",
     point: (id) => points.get(id) || null,
+    // Wording for the pages: looked up by key, with {placeholders} filled in. All of it lives in the curriculum config.
+    label: (key, vars = {}) => String(key in (config.labels || {}) ? config.labels[key] : key).replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m)),
     pointText: (id) => (points.get(id) || {}).display || "",
     pointsOf: (code, ids) => ids.map((id) => points.get(id)).filter((p) => p && p.code === code),
     themeOf: (code) => {

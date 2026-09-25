@@ -1,4 +1,4 @@
-// "The data": trend chart, bar chart, headline figures, share bar, list of rates, context points.
+// Figures section: trend chart, bar chart, headline figures, share bar, list of rates, context points.
 import { esc, has, safeUrl } from "../util.js";
 import { barChart } from "../charts/bar.js";
 import { trendChart, trendSeries, trendLegend } from "../charts/trend.js";
@@ -12,8 +12,8 @@ function sourceLinks(t) {
 
 export default {
   id: "data",
-  nav: "The data",
-  render(art) {
+  navKey: "nav_data",
+  render(art, ctx) {
     const v = art.visuals;
     if (!v) return "";
     let html = "";
@@ -33,6 +33,6 @@ export default {
     if (v.share) html += shareBlock(v.share);
     if (v.bars) html += barsBlock(v.bars);
     html += pointsBlock(v);
-    return html ? `<section id="sec-data"><h2>${esc(v.title || "The data")}</h2>${html}</section>` : "";
+    return html ? `<section id="sec-data"><h2>${esc(v.title || ctx.cur.label("data_title_default"))}</h2>${html}</section>` : "";
   },
 };

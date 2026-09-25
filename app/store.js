@@ -53,6 +53,7 @@ export function teacherLogout() {
 // ---------------------------------------------------------------- reading
 export function entries() {
   const list = isTeacher() ? state.teacherIndex.articles : state.index.articles;
+  if (!isTeacher()) return list; // unpublished review changes are for the teacher's own view only
   return list.map((e) => {
     const r = state.review[e.id];
     return r ? { ...e, status: r.status || e.status, primary: r.primary || e.primary } : e;
@@ -66,7 +67,7 @@ export async function loadArticle(id) {
     const blob = await getJson(entry.file);
     articleCache.set(id, isTeacher() ? await decryptJson(state.teacherKey, blob) : blob);
   }
-  return applyReview(articleCache.get(id));
+  return isTeacher() ? applyReview(articleCache.get(id)) : articleCache.get(id);
 }
 
 // ---------------------------------------------------------------- teacher review overlay
@@ -91,7 +92,12 @@ export function applyReview(article) {
   if (!r) return article;
   const copy = JSON.parse(JSON.stringify(article));
   if (r.status) copy.state = { ...(copy.state || {}), status: r.status };
-  if (r.primary && copy.mapping) copy.mapping.primary = r.primary;
+  if (r.primary && copy.mapping && copy.mapping.primary !== r.primary) {
+    // The new main code swaps places with the old one, as the review tool does when the change is applied.
+    const old = copy.mapping.primary;
+    copy.mapping.secondary = (copy.mapping.secondary || []).map((c) => (c === r.primary ? old : c));
+    copy.mapping.primary = r.primary;
+  }
   return copy;
 }
 
